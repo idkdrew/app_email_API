@@ -1,18 +1,17 @@
 package com.alves.emailservice.domain.model
 
 import jakarta.persistence.*
+import java.time.LocalDateTime
 
 @Entity
-data class Usuario(
+@Table(name = "token_blacklist")
+data class TokenBlacklist(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    val id: Long = 0,
 
     @Column(unique = true, nullable = false)
-    val email: String,
+    val token: String,
 
     @Column(nullable = false)
-    var nome: String,
-
-    @Column(nullable = false)
-    var senha: String
+    val expiration: LocalDateTime
 )

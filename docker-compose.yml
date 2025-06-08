@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-lab
+    environment:
+      POSTGRES_USER: labsa
+      POSTGRES_PASSWORD: labsa123
+      POSTGRES_DB: gestaoinfraweb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: spring-app
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gestaoinfraweb
+      SPRING_DATASOURCE_USERNAME: labsa
+      SPRING_DATASOURCE_PASSWORD: labsa123
+
+volumes:
+  pgdata:

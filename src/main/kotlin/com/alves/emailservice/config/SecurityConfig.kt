@@ -1,22 +1,41 @@
 package com.alves.emailservice.config
 
+import com.alves.emailservice.service.JwtService
+import com.alves.emailservice.service.UsuarioDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
-class SecurityConfig {
-
+@EnableWebSecurity
+class SecurityConfig(
+    private val jwtService: JwtService,
+    private val usuarioDetailsService: UsuarioDetailsService
+) {
     @Bean
     fun filterchain(http: HttpSecurity): SecurityFilterChain {
         http.csrf { it.disable() }
             .authorizeHttpRequests {
-                it.anyRequest().permitAll()
+                it.requestMatchers("/api/login").permitAll()
+                it.requestMatchers("/api/usuarios").permitAll()
+                it.anyRequest().authenticated()
             }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .addFilterBefore(JwtAuthFilter(jwtService, usuarioDetailsService), UsernamePasswordAuthenticationFilter::class.java)
         return http.build()
     }
 
     @Bean
     fun passwordEncoder() = org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder()
+
+    @Bean
+    fun authenticationManager(
+        config: AuthenticationConfiguration
+    ): AuthenticationManager = config.authenticationManager
 }

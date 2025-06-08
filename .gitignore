@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Arquivo de configuração com credenciais
+src/main/resources/application.properties
+
+# Outros arquivos de configuração Spring
+*.properties
+application*.yml
+application*.yaml
