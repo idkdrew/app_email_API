@@ -5,18 +5,24 @@ import com.alves.emailservice.domain.model.TokenBlacklist
 import com.alves.emailservice.domain.model.Usuario
 import com.alves.emailservice.domain.repository.TokenBlacklistRepository
 import com.alves.emailservice.domain.repository.UsuarioRepository
+import com.alves.emailservice.exception.CredenciaisInvalidasException
 import com.alves.emailservice.exception.ErroNaoAutorizadoException
 import com.alves.emailservice.exception.ErroUsuarioNaoEncontradoException
 import com.alves.emailservice.exception.ErroRequisicaoException
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
+import java.time.ZoneId
 
 @Service
 class UsuarioService(
     private val repository: UsuarioRepository,
     private val encoder: BCryptPasswordEncoder,
     private val jwtService: JwtService,
-    private val blacklistRepository: TokenBlacklistRepository
+    private val blacklistRepository: TokenBlacklistRepository,
+    private val authenticationManager: AuthenticationManager
 ) {
     private val EMAIL_REGEX = Regex("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}\$")
 
@@ -60,11 +66,23 @@ class UsuarioService(
         return repository.save(usuario)
     }
 
-    fun buscarPorEmail(login: LoginRequest): Usuario {
-        val usuario = repository.findByEmail(login.email)
-            ?: throw RuntimeException("Usuário não encontrado")
+    fun realizarLogin(request: LoginRequest): LoginResponse {
+        try {
+            val auth = UsernamePasswordAuthenticationToken(request.email, request.senha)
+            authenticationManager.authenticate(auth)
+        } catch (ex: BadCredentialsException) {
+            throw CredenciaisInvalidasException()
+        } catch (ex: Exception) {
+            throw ErroRequisicaoException()
+        }
 
-        return usuario
+        val usuario = repository.findByEmail(request.email)
+            ?: throw CredenciaisInvalidasException()
+
+        val id = usuario.id ?: throw ErroRequisicaoException()
+
+        val token = jwtService.gerarToken(usuario.email, id)
+        return LoginResponse(token)
     }
 
     fun buscarUsuarioPorToken(token: String): BuscarUsuarioResponse {
@@ -84,8 +102,22 @@ class UsuarioService(
     }
 
     fun logoutUsuario(token: String): MensagemResponseDTO {
+        val id = jwtService.getUsuarioId(token)
+            ?: throw ErroNaoAutorizadoException()
+
+        val usuario = repository.findById(id)
+            .orElseThrow { ErroUsuarioNaoEncontradoException() }
+
         val claims = jwtService.getClaims(token)
-        val expiration = claims.expiration.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+
+        val expiration = try {
+            claims.expiration
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+        } catch (e: Exception) {
+            throw ErroRequisicaoException()
+        }
 
         val blacklist = TokenBlacklist(token = token, expiration = expiration)
         blacklistRepository.save(blacklist)
@@ -116,15 +148,18 @@ class UsuarioService(
         )
     }
 
-
     fun deletarUsuario(token: String): MensagemResponseDTO {
         val id = jwtService.getUsuarioId(token)
             ?: throw ErroNaoAutorizadoException()
 
         val usuario = repository.findById(id)
-            .orElseThrow { RuntimeException("Usuário não encontrado") }
+            .orElseThrow { ErroUsuarioNaoEncontradoException() }
 
-        repository.delete(usuario)
+        try {
+            repository.delete(usuario)
+        } catch (e: Exception) {
+            throw ErroRequisicaoException()
+        }
 
         return MensagemResponseDTO("Usuário deletado com sucesso")
     }

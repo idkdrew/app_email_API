@@ -19,15 +19,8 @@ class AuthController(
 ) {
     @PostMapping("/login")
     fun login(@RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
-        val auth = UsernamePasswordAuthenticationToken(request.email, request.senha)
-        authManager.authenticate(auth) // dispara a verificação
-
-        val usuario = service.buscarPorEmail(request)
-
-        usuario.id?.let {
-            val token = jwtService.gerarToken(usuario.email, it)
-            return ResponseEntity.ok(LoginResponse(token))
-        } ?: throw RuntimeException("Usuário sem ID válido")
+        val response = service.realizarLogin(request)
+        return ResponseEntity.ok(response)
     }
 
     @PostMapping("/logout")
