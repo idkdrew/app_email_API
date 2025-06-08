@@ -36,7 +36,6 @@ build/
 src/main/resources/application.properties
 
 # Outros arquivos de configuração Spring
-*.properties
-application*.properties
+application.properties
 application*.yml
 application*.yaml
