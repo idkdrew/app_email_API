@@ -4,6 +4,7 @@ import com.alves.emailservice.service.JwtService
 import com.alves.emailservice.service.UsuarioDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -22,12 +23,15 @@ class SecurityConfig(
     fun filterchain(http: HttpSecurity): SecurityFilterChain {
         http.csrf { it.disable() }
             .authorizeHttpRequests {
+                it.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 it.requestMatchers("/api/login").permitAll()
+                it.requestMatchers("/api/logout").permitAll()
                 it.requestMatchers("/api/usuarios").permitAll()
                 it.anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .addFilterBefore(JwtAuthFilter(jwtService, usuarioDetailsService), UsernamePasswordAuthenticationFilter::class.java)
+
         return http.build()
     }
 

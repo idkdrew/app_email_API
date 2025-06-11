@@ -1,6 +1,7 @@
 package com.alves.emailservice.controller
 
 import com.alves.emailservice.controller.dto.*
+import com.alves.emailservice.exception.ErroNaoAutorizadoException
 import com.alves.emailservice.service.UsuarioService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -22,7 +23,10 @@ class UsuarioController(
     }
 
     @GetMapping
-    fun getUsuarioLogado(@RequestHeader("Authorization") authHeader: String): ResponseEntity<BuscarUsuarioResponse> {
+    fun getUsuarioLogado(@RequestHeader(value = "Authorization", defaultValue = "") authHeader: String): ResponseEntity<BuscarUsuarioResponse> {
+        if(authHeader.isBlank()) {
+            throw ErroNaoAutorizadoException()
+        }
         val token = authHeader.removePrefix("Bearer ").trim()
         val response = service.buscarUsuarioPorToken(token)
         return ResponseEntity.ok(response)
@@ -30,15 +34,21 @@ class UsuarioController(
 
     @PutMapping
     fun atualizarUsuario(
-        @RequestHeader("Authorization") token: String,
+        @RequestHeader(value = "Authorization", defaultValue = "") authHeader: String,
         @RequestBody @Valid request: AtualizarUsuarioRequest
-    ): ResponseEntity<MensagemResponseDTO> {
-        val response = service.atualizarUsuario(token.removePrefix("Bearer ").trim(), request)
+    ): ResponseEntity<BuscarUsuarioResponse> {
+        if(authHeader.isBlank()) {
+            throw ErroNaoAutorizadoException()
+        }
+        val response = service.atualizarUsuario(authHeader.removePrefix("Bearer ").trim(), request)
         return ResponseEntity.ok(response)
     }
 
     @DeleteMapping
-    fun deletarUsuario(@RequestHeader("Authorization") authHeader: String): ResponseEntity<MensagemResponseDTO> {
+    fun deletarUsuario(@RequestHeader(value = "Authorization", defaultValue = "") authHeader: String): ResponseEntity<MensagemResponseDTO> {
+        if(authHeader.isBlank()) {
+            throw ErroNaoAutorizadoException()
+        }
         val token = authHeader.removePrefix("Bearer ").trim()
         val response = service.deletarUsuario(token)
         return ResponseEntity.ok(response)

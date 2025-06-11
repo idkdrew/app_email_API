@@ -3,6 +3,7 @@ package com.alves.emailservice.controller
 import com.alves.emailservice.controller.dto.LoginRequest
 import com.alves.emailservice.controller.dto.LoginResponse
 import com.alves.emailservice.controller.dto.MensagemResponseDTO
+import com.alves.emailservice.exception.ErroNaoAutorizadoException
 import com.alves.emailservice.service.JwtService
 import com.alves.emailservice.service.UsuarioService
 import org.springframework.http.ResponseEntity
@@ -24,7 +25,10 @@ class AuthController(
     }
 
     @PostMapping("/logout")
-    fun logout(@RequestHeader("Authorization") authHeader: String): ResponseEntity<MensagemResponseDTO> {
+    fun logout(@RequestHeader("Authorization", defaultValue = "") authHeader: String): ResponseEntity<MensagemResponseDTO> {
+        if(authHeader.isBlank()) {
+            throw ErroNaoAutorizadoException()
+        }
         val token = authHeader.removePrefix("Bearer ").trim()
         val response = service.logoutUsuario(token)
         return ResponseEntity.ok(response)
