@@ -22,7 +22,7 @@ class RascunhoController(
         }
         val token = authHeader.removePrefix("Bearer ").trim()
         val response = service.criarRascunho(token, request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(response)
+        return ResponseEntity.status(HttpStatus.OK).body(response)
     }
 
     @PutMapping("/{id}")
