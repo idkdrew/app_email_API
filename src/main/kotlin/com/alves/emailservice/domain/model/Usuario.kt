@@ -14,5 +14,8 @@ data class Usuario(
     var nome: String,
 
     @Column(nullable = false)
-    var senha: String
+    var senha: String,
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    var ativo: Boolean = true
 )

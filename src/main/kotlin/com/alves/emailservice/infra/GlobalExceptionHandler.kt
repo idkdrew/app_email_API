@@ -42,6 +42,18 @@ class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro)
     }
 
+    @ExceptionHandler(ErroRascunhoNaoEncontradoException::class)
+    fun handleRascunhoNaoEncontrado(ex: ErroRascunhoNaoEncontradoException, request: HttpServletRequest): ResponseEntity<ErroUsuarioResponseDTO> {
+        val erro = ErroUsuarioResponseDTO( mensagem = "Rascunho nao encontrado" )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro)
+    }
+
+    @ExceptionHandler(ErroEmailNaoEncontradoException::class)
+    fun handleEmailNaoEncontrado(ex: ErroEmailNaoEncontradoException, request: HttpServletRequest): ResponseEntity<ErroUsuarioResponseDTO> {
+        val erro = ErroUsuarioResponseDTO( mensagem = "Email nao encontrado" )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro)
+    }
+
     @ExceptionHandler(CredenciaisInvalidasException::class)
     fun handleCredenciaisInvalidas(ex: CredenciaisInvalidasException): ResponseEntity<ErroUsuarioResponseDTO> {
         val erro = ErroUsuarioResponseDTO( mensagem = "Credenciais Incorretas" )

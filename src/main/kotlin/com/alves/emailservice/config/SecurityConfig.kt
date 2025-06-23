@@ -1,7 +1,7 @@
 package com.alves.emailservice.config
 
+import com.alves.emailservice.domain.repository.UsuarioRepository
 import com.alves.emailservice.service.JwtService
-import com.alves.emailservice.service.UsuarioDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 class SecurityConfig(
     private val jwtService: JwtService,
-    private val usuarioDetailsService: UsuarioDetailsService
+    private val usuarioRepository: UsuarioRepository
 ) {
     @Bean
     fun filterchain(http: HttpSecurity): SecurityFilterChain {
@@ -30,7 +30,7 @@ class SecurityConfig(
                 it.anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .addFilterBefore(JwtAuthFilter(jwtService, usuarioDetailsService), UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterBefore(JwtAuthFilter(jwtService, usuarioRepository), UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }

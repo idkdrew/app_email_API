@@ -13,16 +13,15 @@ import javax.crypto.SecretKey
 class JwtService(
     private val blacklistRepository: TokenBlacklistRepository
 ) {
-    private val secret = "uma-chave-bem-grande-e-segura-mesmo-1234567890"
-    private val expirationMillis = 1000 * 60 * 60 // 1 hora
+    private val secret: String = "uma-chave-bem-grande-e-segura-mesmo-1234567890"
+    private val expirationMillis = 1000 * 60 * 60
     private val key: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
-    fun gerarToken(email: String, id: Long): String {
+    fun gerarToken(id: Long): String {
         val agora = Date()
         val expiracao = Date(agora.time + expirationMillis)
 
         return Jwts.builder()
-            .setSubject(email)
             .claim("id", id)
             .setIssuedAt(agora)
             .setExpiration(expiracao)
@@ -34,7 +33,6 @@ class JwtService(
         return try {
             val claims = getClaims(token)
             val expirado = claims.expiration.before(Date())
-
             val tokenNaBlacklist = blacklistRepository.findByToken(token).isPresent
 
             !expirado && !tokenNaBlacklist
@@ -43,15 +41,11 @@ class JwtService(
         }
     }
 
-    fun getEmail(token: String): String {
-        return getClaims(token).subject
-    }
-
     fun getUsuarioId(token: String): Long? {
         return try {
             getClaims(token)["id"].toString().toLong()
         } catch (e: Exception) {
-            return null
+            null
         }
     }
 
@@ -63,3 +57,4 @@ class JwtService(
             .body
     }
 }
+

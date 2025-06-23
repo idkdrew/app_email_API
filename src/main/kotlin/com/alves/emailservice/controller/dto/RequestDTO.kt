@@ -18,3 +18,21 @@ data class AtualizarUsuarioRequest(
     @field:NotBlank val senha: String
 )
 
+data class CriarRascunhoRequest(
+    val assunto: String?,
+    val emailDestinatario: String?,
+    val corpo: String?
+)
+
+data class SalvarRascunhoRequest(
+    val assunto: String?,
+    val emailDestinatario: String?,
+    val corpo: String?
+)
+
+data class EnviarEmailRequest(
+    val assunto: String?,
+    val emailDestinatario: String?,
+    val corpo: String?
+)
+

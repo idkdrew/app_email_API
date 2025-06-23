@@ -76,12 +76,12 @@ class UsuarioService(
             throw ErroRequisicaoException()
         }
 
-        val usuario = repository.findByEmail(request.email)
+        val usuario = repository.findByEmailAndAtivoTrue(request.email)
             ?: throw CredenciaisInvalidasException()
 
         val id = usuario.id ?: throw ErroRequisicaoException()
 
-        val token = jwtService.gerarToken(usuario.email, id)
+        val token = jwtService.gerarToken(id)
         return LoginResponse(token)
     }
 
@@ -91,6 +91,8 @@ class UsuarioService(
 
         val usuario = repository.findById(id)
             .orElseThrow{ ErroRequisicaoException() }
+
+        if (!usuario.ativo) throw ErroUsuarioNaoEncontradoException()
 
         return BuscarUsuarioResponse(
             mensagem = "Sucesso ao buscar usuario",
@@ -107,6 +109,8 @@ class UsuarioService(
 
         val usuario = repository.findById(id)
             .orElseThrow { ErroUsuarioNaoEncontradoException() }
+
+        if (!usuario.ativo) throw ErroUsuarioNaoEncontradoException()
 
         val claims = jwtService.getClaims(token)
 
@@ -132,6 +136,8 @@ class UsuarioService(
         val usuario = repository.findById(id)
             .orElseThrow { ErroUsuarioNaoEncontradoException() }
 
+        if (!usuario.ativo) throw ErroUsuarioNaoEncontradoException()
+
         validarAtualizacao(request)
 
         usuario.nome = request.nome
@@ -155,11 +161,10 @@ class UsuarioService(
         val usuario = repository.findById(id)
             .orElseThrow { ErroUsuarioNaoEncontradoException() }
 
-        try {
-            repository.delete(usuario)
-        } catch (e: Exception) {
-            throw ErroRequisicaoException()
-        }
+        if (!usuario.ativo) throw ErroUsuarioNaoEncontradoException()
+
+        usuario.ativo = false
+        repository.save(usuario)
 
         return MensagemResponseDTO("Usuário deletado com sucesso")
     }
