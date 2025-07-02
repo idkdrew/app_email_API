@@ -27,6 +27,7 @@ class SecurityConfig(
                 it.requestMatchers("/api/login").permitAll()
                 it.requestMatchers("/api/logout").permitAll()
                 it.requestMatchers("/api/usuarios").permitAll()
+                it.requestMatchers("/usuarios-logados", "/api/usuarios/logados", "/css/**", "/js/**").permitAll()
                 it.anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

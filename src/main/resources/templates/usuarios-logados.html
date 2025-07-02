@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuários Logados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#0a0a0a] text-[#ededed] font-sans">
+<div class="min-h-screen container mx-auto py-10 px-4">
+    <h1 class="text-3xl font-bold text-center mb-8">Usuários Logados</h1>
+
+    <div class="overflow-x-auto shadow-md rounded-lg bg-[#1a1a1a]">
+        <table class="min-w-full divide-y divide-gray-800 text-sm">
+            <thead class="bg-blue-700 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left font-medium uppercase tracking-wider">Nome</th>
+                <th class="px-6 py-3 text-left font-medium uppercase tracking-wider">Email</th>
+            </tr>
+            </thead>
+            <tbody id="corpoTabela" class="divide-y divide-gray-800">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    async function carregarUsuarios() {
+        try {
+            const resposta = await fetch('/api/usuarios/logados');
+            const usuarios = await resposta.json();
+
+            const corpoTabela = document.getElementById('corpoTabela');
+            corpoTabela.innerHTML = '';
+
+            usuarios.forEach(usuario => {
+                const linha = document.createElement('tr');
+
+                const tdNome = document.createElement('td');
+                tdNome.textContent = usuario.nome;
+                tdNome.className = 'px-6 py-4 whitespace-nowrap';
+
+                const tdEmail = document.createElement('td');
+                tdEmail.textContent = usuario.email;
+                tdEmail.className = 'px-6 py-4 whitespace-nowrap';
+
+                linha.appendChild(tdNome);
+                linha.appendChild(tdEmail);
+                corpoTabela.appendChild(linha);
+            });
+        } catch (e) {
+            console.error('Erro ao buscar usuários logados:', e);
+        }
+    }
+
+    carregarUsuarios();
+    setInterval(carregarUsuarios, 5000);
+</script>
+</body>
+</html>

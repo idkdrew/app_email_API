@@ -1,8 +1,10 @@
 package com.alves.emailservice.service
 
 import com.alves.emailservice.controller.dto.*
+import com.alves.emailservice.domain.model.TokenAtivo
 import com.alves.emailservice.domain.model.TokenBlacklist
 import com.alves.emailservice.domain.model.Usuario
+import com.alves.emailservice.domain.repository.TokenAtivoRepository
 import com.alves.emailservice.domain.repository.TokenBlacklistRepository
 import com.alves.emailservice.domain.repository.UsuarioRepository
 import com.alves.emailservice.exception.CredenciaisInvalidasException
@@ -22,7 +24,8 @@ class UsuarioService(
     private val encoder: BCryptPasswordEncoder,
     private val jwtService: JwtService,
     private val blacklistRepository: TokenBlacklistRepository,
-    private val authenticationManager: AuthenticationManager
+    private val authenticationManager: AuthenticationManager,
+    private val tokenAtivoRepository: TokenAtivoRepository
 ) {
     private val EMAIL_REGEX = Regex("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}\$")
 
@@ -82,6 +85,12 @@ class UsuarioService(
         val id = usuario.id ?: throw ErroRequisicaoException()
 
         val token = jwtService.gerarToken(id)
+
+        val expiration = jwtService.getClaims(token).expiration
+            .toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+        tokenAtivoRepository.save(TokenAtivo(token, id, expiration))
+
         return LoginResponse(token)
     }
 
@@ -123,6 +132,7 @@ class UsuarioService(
             throw ErroRequisicaoException()
         }
 
+        tokenAtivoRepository.deleteById(token)
         val blacklist = TokenBlacklist(token = token, expiration = expiration)
         blacklistRepository.save(blacklist)
 
@@ -167,5 +177,15 @@ class UsuarioService(
         repository.save(usuario)
 
         return MensagemResponseDTO("Usuário deletado com sucesso")
+    }
+
+    fun listarUsuariosLogados(): List<UsuarioResponse> {
+        val tokensValidos = tokenAtivoRepository.findAllByExpirationAfter()
+        val ids = tokensValidos.map { it.userId }.distinct()
+        val usuarios = repository.findAllById(ids)
+
+        return usuarios
+            .filter { it.ativo }
+            .map { UsuarioResponse(nome = it.nome, email = it.email) }
     }
 }

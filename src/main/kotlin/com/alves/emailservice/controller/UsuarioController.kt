@@ -53,4 +53,10 @@ class UsuarioController(
         val response = service.deletarUsuario(token)
         return ResponseEntity.ok(response)
     }
+
+    @GetMapping("/logados")
+    fun listarUsuariosLogados(): ResponseEntity<List<UsuarioResponse>> {
+        val usuarios = service.listarUsuariosLogados()
+        return ResponseEntity.ok(usuarios)
+    }
 }

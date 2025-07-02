@@ -15,7 +15,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(ErroRequisicaoException::class)
     fun handleErroRequisicao(ex: ErroRequisicaoException, request: HttpServletRequest): ResponseEntity<ErroResponseDTO> {
         val erro = ErroResponseDTO(
-            erro = ex.stackTraceToString() ?: "",
+            erro = "",
             mensagem = "Erro na requisicao",
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro)
@@ -24,7 +24,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(InternalServerErrorException::class)
     fun handleException(ex: InternalServerErrorException, request: HttpServletRequest): ResponseEntity<ErroResponseDTO> {
         val erro = ErroResponseDTO(
-            erro = ex.stackTraceToString() ?: "",
+            erro = "",
             mensagem = "Erro interno no servidor",
         )
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(erro)

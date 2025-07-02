@@ -1,9 +1,6 @@
 package com.alves.emailservice.domain.model
 
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
+import jakarta.persistence.*
 
 @Entity
 data class Email(
@@ -12,6 +9,8 @@ data class Email(
     val assunto: String,
     val emailRemetente: String,
     val emailDestinatario: String,
+
+    @Column(columnDefinition = "text")
     val corpo: String,
     var status: String,
     val dataEnvio: String
